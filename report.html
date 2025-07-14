@@ -1,0 +1,927 @@
+2025.01.02 Thursday
+14:40 เนติธร แบบก่อสร้างบ้านพักคสลสูง 1 ชั้น_20240403.pdf
+2025.01.04 Saturday
+14:45 Netitorn Montriwat Photos
+14:47 Netitorn Montriwat 065-032-7808 คุณเสกสรรค์ ปั๊มน้ำโซล่าร์เซลล์ 
+2025.01.06 Monday
+16:51 เนติธร Photos
+2025.01.16 Thursday
+10:51 เนติธร Photos
+2025.01.21 Tuesday
+13:33 เนติธร Photos
+2025.01.23 Thursday
+18:56 เนติธร Photos
+18:56 เนติธร Videos
+18:56 เนติธร Videos
+18:56 เนติธร Photos
+18:56 เนติธร Photos
+2025.01.24 Friday
+17:28 Netitorn Montriwat ลองเข้ามาดูสินค้า Lumira LWSPD-PV800 SPD 2P DC 800V, 1000V ป้องกันฟ้าผ่า เสิร์จกันฟ้าผ่า กันฟ้าผ่า DC ไฟกระชากสำรับโซล่าเซลล์ ธันไฟฟ้า ขายในราคา ฿155 ซื้อได้ในแอป Shopee ตอนนี้เลย! https://th.shp.ee/YQXCtjq
+17:40 Netitorn Montriwat ลองเข้ามาดูสินค้า Lumira เบรกเกอร์ DC รุ่น BA49-63 MCB 1000V DC Solar Breaker เบรกเกอร์โซล่าเซลล์ เบรกเกอร์เกาะราง 1000VDC ของแท้ ธันไฟฟ้า ขายในราคา ฿85 ซื้อได้ในแอป Shopee ตอนนี้เลย! https://th.shp.ee/9ubXmYF
+17:43 Netitorn Montriwat ลองเข้ามาดูสินค้า Worldsunlight Haber เบรกเกอร์ DC 2P รุ่น XL7-63 MCB 500V ตัวเลือก16A 20A 32A 63A Breaker เบรกเกอร์โซล่าเซลล์ ธันไฟฟ้า ขายในราคา ฿125 ซื้อได้ในแอป Shopee ตอนนี้เลย! https://th.shp.ee/XdUL4eJ
+2025.01.26 Sunday
+09:51 Netitorn Montriwat Canceled
+17:44 เนติธร Photos
+2025.01.31 Friday
+16:35 เนติธร Photos
+18:54 เนติธร Photos
+2025.02.12 Wednesday
+13:38 Netitorn Montriwat https://maps.app.goo.gl/g3Q3BVaSFqmUWgfT7?g_st=com.google.maps.preview.copy
+2025.03.01 Saturday
+09:16 เนติธร Photos
+2025.03.06 Thursday
+15:44 เนติธร Photos
+2025.03.15 Saturday
+15:29 Netitorn Montriwat Added a new note.
+2025.03.19 Wednesday
+13:33 เนติธร Photos
+2025.03.31 Monday
+13:15 Netitorn Montriwat Added a new note.
+18:39 เนติธร Photos
+18:43 เนติธร Photos
+2025.04.08 Tuesday
+09:26 เนติธร Photos
+2025.04.18 Friday
+18:09 เนติธร Videos
+2025.04.19 Saturday
+11:35 เนติธร Photos
+2025.04.20 Sunday
+14:56 เนติธร Photos
+2025.04.23 Wednesday
+15:15 เนติธร Photos
+2025.05.01 Thursday
+10:31 เนติธร Photos
+2025.05.16 Friday
+16:03 เนติธร Photos
+2025.05.17 Saturday
+14:07 เนติธร กระดาษบิลของกิ๊ฟ57×40.pdf
+2025.05.27 Tuesday
+14:58 เนติธร Photos
+23:56 เนติธร Photos
+2025.05.28 Wednesday
+11:24 เนติธร Photos
+2025.05.31 Saturday
+20:38 เนติธร Photos
+2025.06.21 Saturday
+18:45 เนติธร Photos
+2025.06.30 Monday
+15:40 เนติธร Photos
+21:23 เนติธร Photos
+2025.07.01 Tuesday
+13:07 เนติธร Photos
+2025.07.14 Monday
+12:34 Netitorn Montriwat from flask import Flask, request, render_template, redirect
+import sqlite3
+from datetime import datetime
+
+app = Flask(__name__)
+
+def init_db():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS products
+                 (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, last_updated TEXT)''')
+    conn.commit()
+    conn.close()
+
+@app.route('/')
+def index():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products")
+    items = c.fetchall()
+    conn.close()
+    return render_template('index.html', items=items)
+
+@app.route('/add', methods=['POST'])
+def add():
+    name = request.form['name']
+    qty = int(request.form['quantity'])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products WHERE name=?", (name,))
+    result = c.fetchone()
+    if result:
+        new_qty = result[2] + qty
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=?", (new_qty, now, name))
+    else:
+        c.execute("INSERT INTO products (name, quantity, last_updated) VALUES (?, ?, ?)", (name, qty, now))
+    conn.commit()
+    conn.close()
+    return redirect('/')
+
+@app.route('/sell', methods=['POST'])
+def sell():
+    name = request.form['name']
+    qty = int(request.form['quantity'])
+
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products WHERE name=?", (name,))
+    result = c.fetchone()
+    if result and result[2] >= qty:
+        new_qty = result[2] - qty
+        now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=?", (new_qty, now, name))
+        conn.commit()
+    conn.close()
+    return redirect('/')
+
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True, host='0.0.0.0', port=5000)
+12:41 Netitorn Montriwat <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>จัดการสต๊อก</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table, th, td { border: 1px solid #333; border-collapse: collapse; padding: 8px; }
+        input[type="text"], input[type="number"] { width: 150px; }
+    </style>
+</head>
+<body>
+    <h1>ระบบจัดการสต๊อก</h1>
+
+    <h2>สินค้าในระบบ</h2>
+    <table>
+        <tr><th>ชื่อสินค้า</th><th>จำนวน</th><th>อัปเดตล่าสุด</th></tr>
+        {% for item in items %}
+            <tr><td>{{ item[1] }}</td><td>{{ item[2] }}</td><td>{{ item[3] }}</td></tr>
+        {% endfor %}
+    </table>
+
+    <h2>รับสินค้าเข้า</h2>
+    <form action="/add" method="post">
+        <input type="text" name="name" placeholder="ชื่อสินค้า" required>
+        <input type="number" name="quantity" placeholder="จำนวน" required>
+        <button type="submit">เพิ่ม</button>
+    </form>
+
+    <h2>ขายสินค้าออก</h2>
+    <form action="/sell" method="post">
+        <input type="text" name="name" placeholder="ชื่อสินค้า" required>
+        <input type="number" name="quantity" placeholder="จำนวน" required>
+        <button type="submit">ขาย</button>
+    </form>
+</body>
+</html>
+13:14 Netitorn Montriwat ปรับหน้าแอพ
+13:14 Netitorn Montriwat <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ระบบจัดการสต๊อก</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-4">
+
+<div class="container">
+    <h1 class="mb-4 text-center">📦 ระบบจัดการสต๊อก</h1>
+
+    <div class="mb-4">
+        <h4>สินค้าในระบบ</h4>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ชื่อสินค้า</th>
+                    <th>จำนวน</th>
+                    <th>อัปเดตล่าสุด</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                    <td>{{ item[3] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <!-- รับสินค้าเข้า -->
+        <div class="col-md-6 mb-4">
+            <h4>📥 รับสินค้าเข้า</h4>
+            <form action="/add" method="post" class="border p-3 bg-white shadow-sm rounded">
+                <div class="mb-3">
+                    <label class="form-label">ชื่อสินค้า</label>
+                    <input type="text" name="name" class="form-control" placeholder="เช่น พัดลม" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">จำนวน</label>
+                    <input type="number" name="quantity" class="form-control" placeholder="เช่น 10" required>
+                </div>
+                <button type="submit" class="btn btn-success">เพิ่มสินค้าเข้า</button>
+            </form>
+        </div>
+
+        <!-- จำหน่ายสินค้า -->
+        <div class="col-md-6 mb-4">
+            <h4>📤 จำหน่ายสินค้าออก</h4>
+            <form action="/sell" method="post" class="border p-3 bg-white shadow-sm rounded">
+                <div class="mb-3">
+                    <label class="form-label">ชื่อสินค้า</label>
+                    <input type="text" name="name" class="form-control" placeholder="เช่น พัดลม" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">จำนวน</label>
+                    <input type="number" name="quantity" class="form-control" placeholder="เช่น 3" required>
+                </div>
+                <button type="submit" class="btn btn-danger">ขายสินค้าออก</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (Optional for interactive elements) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+13:22 Netitorn Montriwat อัพเกรด db
+13:22 Netitorn Montriwat c.execute('''CREATE TABLE IF NOT EXISTS products
+             (id INTEGER PRIMARY KEY, name TEXT, category TEXT, quantity INTEGER, last_updated TEXT)''')
+13:24 Netitorn Montriwat อัพหน้า web
+13:24 Netitorn Montriwat <div class="mb-3">
+    <label class="form-label">หมวดหมู่</label>
+    <select name="category" class="form-select" required>
+        <option value="">-- เลือกหมวดหมู่ --</option>
+        <option value="ทีวี">ทีวี</option>
+        <option value="ตู้เย็น">ตู้เย็น</option>
+        <option value="แอร์">แอร์</option>
+        <option value="เครื่องซักผ้า">เครื่องซักผ้า</option>
+    </select>
+</div>
+13:31 Netitorn Montriwat c.execute("SELECT * FROM products WHERE name=?", (name,))
+result = c.fetchone()
+if result:
+    new_qty = result[3] + qty  # index เปลี่ยน เพราะ column เพิ่ม
+    c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=?", (new_qty, now, name))
+else:
+    c.execute("INSERT INTO products (name, category, quantity, last_updated) VALUES (?, ?, ?, ?)",
+              (name, category, qty, now))
+13:33 Netitorn Montriwat <h4>สินค้าในระบบ</h4>
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ชื่อสินค้า</th>
+            <th>หมวดหมู่</th>
+            <th>จำนวน</th>
+            <th>อัปเดตล่าสุด</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item[1] }}</td>
+            <td>{{ item[2] }}</td>
+            <td>{{ item[3] }}</td>
+            <td>{{ item[4] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+13:38 Netitorn Montriwat อัพล่าสุด มี category
+13:38 Netitorn Montriwat from flask import Flask, render_template, request, redirect
+import sqlite3
+from datetime import datetime
+import os
+
+app = Flask(__name__)
+
+DB_FILE = "stock.db"
+
+# ---------- ฐานข้อมูล ----------
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS products (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    category TEXT,
+                    quantity INTEGER,
+                    last_updated TEXT
+                )''')
+    conn.commit()
+    conn.close()
+
+# ---------- หน้าแรก ----------
+@app.route('/')
+def index():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT * FROM products")
+    items = c.fetchall()
+    conn.close()
+    return render_template('index.html', items=items)
+
+# ---------- เพิ่มสินค้า ----------
+@app.route('/add', methods=['POST'])
+def add_item():
+    name = request.form['name']
+    category = request.form['category']
+    qty = int(request.form['quantity'])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+
+    # เช็คว่ามีสินค้าแล้วหรือยัง
+    c.execute("SELECT * FROM products WHERE name=?", (name,))
+    result = c.fetchone()
+    if result:
+        new_qty = result[3] + qty  # index 3 คือ quantity
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=?",
+                  (new_qty, now, name))
+    else:
+        c.execute("INSERT INTO products (name, category, quantity, last_updated) VALUES (?, ?, ?, ?)",
+                  (name, category, qty, now))
+
+    conn.commit()
+    conn.close()
+    return redirect('/')
+
+# ---------- ขายสินค้าออก ----------
+@app.route('/sell', methods=['POST'])
+def sell_item():
+    name = request.form['name']
+    qty = int(request.form['quantity'])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM products WHERE name=?", (name,))
+    result = c.fetchone()
+    if result and result[3] >= qty:
+        new_qty = result[3] - qty
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=?",
+                  (new_qty, now, name))
+
+    conn.commit()
+    conn.close()
+    return redirect('/')
+
+# ---------- เริ่มโปรแกรม ----------
+if __name__ == '__main__':
+    if not os.path.exists(DB_FILE):
+        init_db()
+    app.run(debug=True, host='0.0.0.0')
+13:41 Netitorn Montriwat อัพเวป interface
+13:41 Netitorn Montriwat <!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบจัดการสต๊อกสินค้า</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-4">
+
+<div class="container">
+    <h1 class="mb-4 text-center">📦 ระบบจัดการสต๊อกสินค้า</h1>
+
+    <!-- ตารางแสดงรายการสินค้า -->
+    <div class="mb-5">
+        <h4>📋 รายการสินค้าในระบบ</h4>
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ชื่อสินค้า</th>
+                    <th>หมวดหมู่</th>
+                    <th>จำนวน</th>
+                    <th>อัปเดตล่าสุด</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                    <td>{{ item[3] }}</td>
+                    <td>{{ item[4] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ฟอร์มเพิ่มสินค้าเข้า -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h4>📥 รับสินค้าเข้า</h4>
+            <form action="/add" method="post" class="border p-3 bg-white shadow-sm rounded">
+                <div class="mb-3">
+                    <label class="form-label">ชื่อสินค้า</label>
+                    <input type="text" name="name" class="form-control" placeholder="เช่น ทีวี 32 นิ้ว" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">หมวดหมู่</label>
+                    <select name="category" class="form-select" required>
+                        <option value="">-- เลือกหมวดหมู่ --</option>
+                        <option value="ทีวี">ทีวี</option>
+                        <option value="ตู้เย็น">ตู้เย็น</option>
+                        <option value="แอร์">แอร์</option>
+                        <option value="เครื่องซักผ้า">เครื่องซักผ้า</option>
+                        <option value="อื่น ๆ">อื่น ๆ</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">จำนวน</label>
+                    <input type="number" name="quantity" class="form-control" placeholder="เช่น 10" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">เพิ่มสินค้าเข้า</button>
+            </form>
+        </div>
+
+        <!-- ฟอร์มขายสินค้าออก -->
+        <div class="col-md-6 mb-4">
+            <h4>📤 ขายสินค้าออก</h4>
+            <form action="/sell" method="post" class="border p-3 bg-white shadow-sm rounded">
+                <div class="mb-3">
+                    <label class="form-label">ชื่อสินค้า</label>
+                    <input type="text" name="name" class="form-control" placeholder="เช่น ทีวี 32 นิ้ว" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">จำนวน</label>
+                    <input type="number" name="quantity" class="form-control" placeholder="เช่น 2" required>
+                </div>
+                <button type="submit" class="btn btn-danger w-100">ขายสินค้าออก</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (optional) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+13:49 Netitorn Montriwat https://drive.google.com/drive/folders/11TM76KsIK_6ZJpi36h0vJAoFHi9Bg6CG?usp=sharing
+13:53 Netitorn Montriwat อัพเกรด V.3
+13:53 Netitorn Montriwat from flask import Flask, render_template, request, redirect
+import sqlite3
+from datetime import datetime
+import os
+from werkzeug.utils import secure_filename
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+
+UPLOAD_FOLDER = 'temp_uploads'
+GOOGLE_FOLDER_ID = '11TM76KsIK_6ZJpi36h0vJAoFHi9Bg6CG'  # พี่ปาล์มกำหนดมา
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# ---------- Google Drive Auth ----------
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
+
+# ---------- DB Init ----------
+def init_db():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        category TEXT,
+        quantity INTEGER,
+        image_url TEXT,
+        last_updated TEXT
+    )''')
+    conn.commit()
+    conn.close()
+
+# ---------- Homepage ----------
+@app.route('/')
+def index():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products")
+    items = c.fetchall()
+    conn.close()
+    return render_template('index.html', items=items)
+
+# ---------- Add Product ----------
+@app.route('/add', methods=['POST'])
+def add_item():
+    name = request.form['name']
+    category = request.form['category']
+    qty = int(request.form['quantity'])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    image_url = None
+    image = request.files.get('image')
+    if image and image.filename != '':
+        filename = secure_filename(image.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        image.save(filepath)
+
+        gfile = drive.CreateFile({'parents': [{'id': GOOGLE_FOLDER_ID}], 'title': filename})
+        gfile.SetContentFile(filepath)
+        gfile.Upload()
+        image_url = f"https://drive.google.com/uc?id={gfile['id']}"
+        os.remove(filepath)
+
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM products WHERE name=? AND category=?", (name, category))
+    result = c.fetchone()
+    if result:
+        new_qty = result[3] + qty
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=? AND category=?",
+                  (new_qty, now, name, category))
+    else:
+        c.execute('''INSERT INTO products (name, category, quantity, image_url, last_updated)
+                     VALUES (?, ?, ?, ?, ?)''', (name, category, qty, image_url, now))
+
+    conn.commit()
+    conn.close()
+    return redirect('/')
+
+# ---------- Sell Product ----------
+@app.route('/sell', methods=['POST'])
+def sell_item():
+    name = request.form['name']
+    category = request.form['category']
+    qty = int(request.form['quantity'])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products WHERE name=? AND category=?", (name, category))
+    result = c.fetchone()
+    if result and result[3] >= qty:
+        new_qty = result[3] - qty
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=? AND category=?",
+                  (new_qty, now, name, category))
+
+    conn.commit()
+    conn.close()
+    return redirect('/')
+
+# ---------- รายงานคงคลังตามหมวดหมู่ ----------
+@app.route('/report')
+def report():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT category, SUM(quantity) FROM products GROUP BY category")
+    summary = c.fetchall()
+    conn.close()
+    return render_template('report.html', summary=summary)
+
+# ---------- Start ----------
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)
+13:53 Netitorn Montriwat Upgrade index V.3
+13:53 Netitorn Montriwat <!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบสต๊อกสินค้า</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-4">
+
+<div class="container">
+    <h1 class="text-center mb-4">📦 ระบบสต๊อกสินค้า</h1>
+    <a href="/report" class="btn btn-info mb-4">ดูรายงานคงคลังตามหมวดหมู่</a>
+
+    <h4>รายการสินค้า</h4>
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ชื่อ</th>
+                <th>หมวด</th>
+                <th>จำนวน</th>
+                <th>อัปเดต</th>
+                <th>รูป</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item[1] }}</td>
+                <td>{{ item[2] }}</td>
+                <td>{{ item[3] }}</td>
+                <td>{{ item[5] }}</td>
+                <td>
+                    {% if item[4] %}
+                    <img src="{{ item[4] }}" width="80">
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="row">
+        <!-- รับสินค้าเข้า -->
+        <div class="col-md-6 mb-4">
+            <h4>📥 รับสินค้าเข้า</h4>
+            <form method="post" action="/add" enctype="multipart/form-data" class="bg-white p-3 border rounded shadow-sm">
+                <input type="text" name="name" class="form-control mb-2" placeholder="ชื่อสินค้า" required>
+                <select name="category" class="form-select mb-2" required>
+                    <option value="">-- เลือกหมวดหมู่ --</option>
+                    <option value="ทีวี">ทีวี</option>
+                    <option value="ตู้เย็น">ตู้เย็น</option>
+                    <option value="แอร์">แอร์</option>
+                    <option value="เครื่องซักผ้า">เครื่องซักผ้า</option>
+                </select>
+                <input type="number" name="quantity" class="form-control mb-2" placeholder="จำนวน" required>
+                <input type="file" name="image" class="form-control mb-3" accept="image/*">
+                <button type="submit" class="btn btn-success w-100">เพิ่มสินค้าเข้า</button>
+            </form>
+        </div>
+
+        <!-- ขายสินค้าออก -->
+        <div class="col-md-6 mb-4">
+            <h4>📤 ขายสินค้าออก</h4>
+            <form method="post" action="/sell" class="bg-white p-3 border rounded shadow-sm">
+                <input type="text" name="name" class="form-control mb-2" placeholder="ชื่อสินค้า" required>
+                <select name="category" class="form-select mb-2" required>
+                    <option value="">-- เลือกหมวดหมู่ --</option>
+                    <option value="ทีวี">ทีวี</option>
+                    <option value="ตู้เย็น">ตู้เย็น</option>
+                    <option value="แอร์">แอร์</option>
+                    <option value="เครื่องซักผ้า">เครื่องซักผ้า</option>
+                </select>
+                <input type="number" name="quantity" class="form-control mb-3" placeholder="จำนวน" required>
+                <button type="submit" class="btn btn-danger w-100">ขายสินค้าออก</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+13:54 Netitorn Montriwat Upgrade report
+13:54 Netitorn Montriwat <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>รายงานคงคลัง</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-5">
+<div class="container">
+    <h2 class="text-center mb-4">📊 รายงานคงคลังตามหมวดหมู่</h2>
+    <a href="/" class="btn btn-secondary mb-4">⬅ กลับ</a>
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>หมวดหมู่</th>
+                <th>จำนวนคงเหลือ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in summary %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+15:19 Netitorn Montriwat Update storage on PC
+Python app.py
+15:19 Netitorn Montriwat from flask import Flask, render_template, request, redirect, send_from_directory
+import sqlite3
+import os
+from datetime import datetime
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = 'uploads'
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# สร้างโฟลเดอร์ uploads ถ้ายังไม่มี
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# ---------- เตรียมฐานข้อมูล ----------
+def init_db():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        category TEXT,
+        quantity INTEGER,
+        image_name TEXT,
+        last_updated TEXT
+    )''')
+    conn.commit()
+    conn.close()
+
+# ---------- หน้าแรก ----------
+@app.route('/')
+def index():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products")
+    items = c.fetchall()
+    conn.close()
+    return render_template('index.html', items=items)
+
+# ---------- รับสินค้าเข้า ----------
+@app.route('/add', methods=['POST'])
+def add_item():
+    name = request.form['name']
+    category = request.form['category']
+    qty = int(request.form['quantity'])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    image_name = None
+    image = request.files.get('image')
+    if image and image.filename != '':
+        filename = secure_filename(image.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        image.save(filepath)
+        image_name = filename
+
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products WHERE name=? AND category=?", (name, category))
+    result = c.fetchone()
+
+    if result:
+        new_qty = result[3] + qty
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=? AND category=?",
+                  (new_qty, now, name, category))
+    else:
+        c.execute("INSERT INTO products (name, category, quantity, image_name, last_updated) VALUES (?, ?, ?, ?, ?)",
+                  (name, category, qty, image_name, now))
+    conn.commit()
+    conn.close()
+    return redirect('/')
+
+# ---------- ขายสินค้าออก ----------
+@app.route('/sell', methods=['POST'])
+def sell_item():
+    name = request.form['name']
+    category = request.form['category']
+    qty = int(request.form['quantity'])
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM products WHERE name=? AND category=?", (name, category))
+    result = c.fetchone()
+
+    if result and result[3] >= qty:
+        new_qty = result[3] - qty
+        c.execute("UPDATE products SET quantity=?, last_updated=? WHERE name=? AND category=?",
+                  (new_qty, now, name, category))
+    conn.commit()
+    conn.close()
+    return redirect('/')
+
+# ---------- รายงานคงคลัง ----------
+@app.route('/report')
+def report():
+    conn = sqlite3.connect('stock.db')
+    c = conn.cursor()
+    c.execute("SELECT category, SUM(quantity) FROM products GROUP BY category")
+    summary = c.fetchall()
+    conn.close()
+    return render_template('report.html', summary=summary)
+
+# ---------- แสดงภาพจาก uploads ----------
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# ---------- เริ่มทำงาน ----------
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True, host='0.0.0.0', port=5000)  # เปิดใช้งานในวง LAN
+15:20 Netitorn Montriwat Index V4.
+15:20 Netitorn Montriwat <!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ระบบจัดการสต๊อก</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-4">
+<div class="container">
+    <h2 class="mb-4">📦 ระบบจัดการสต๊อก</h2>
+    <a href="/report" class="btn btn-info mb-3">ดูรายงานคงคลังตามหมวด</a>
+
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>ชื่อสินค้า</th>
+                <th>หมวดหมู่</th>
+                <th>จำนวน</th>
+                <th>อัปเดตล่าสุด</th>
+                <th>รูป</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item[1] }}</td>
+                <td>{{ item[2] }}</td>
+                <td>{{ item[3] }}</td>
+                <td>{{ item[5] }}</td>
+                <td>
+                    {% if item[4] %}
+                    <img src="/uploads/{{ item[4] }}" width="80">
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="row">
+        <!-- ฟอร์มรับเข้า -->
+        <div class="col-md-6">
+            <h4>📥 รับสินค้าเข้า</h4>
+            <form method="post" action="/add" enctype="multipart/form-data" class="border p-3 bg-white rounded">
+                <input type="text" name="name" class="form-control mb-2" placeholder="ชื่อสินค้า" required>
+                <select name="category" class="form-select mb-2" required>
+                    <option value="">เลือกหมวด</option>
+                    <option>ทีวี</option>
+                    <option>แอร์</option>
+                    <option>ตู้เย็น</option>
+                    <option>เครื่องซักผ้า</option>
+                </select>
+                <input type="number" name="quantity" class="form-control mb-2" placeholder="จำนวน" required>
+                <input type="file" name="image" class="form-control mb-3" accept="image/*">
+                <button type="submit" class="btn btn-success w-100">บันทึก</button>
+            </form>
+        </div>
+
+        <!-- ฟอร์มขายออก -->
+        <div class="col-md-6">
+            <h4>📤 ขายสินค้าออก</h4>
+            <form method="post" action="/sell" class="border p-3 bg-white rounded">
+                <input type="text" name="name" class="form-control mb-2" placeholder="ชื่อสินค้า" required>
+                <select name="category" class="form-select mb-2" required>
+                    <option value="">เลือกหมวด</option>
+                    <option>ทีวี</option>
+                    <option>แอร์</option>
+                    <option>ตู้เย็น</option>
+                    <option>เครื่องซักผ้า</option>
+                </select>
+                <input type="number" name="quantity" class="form-control mb-3" placeholder="จำนวนที่ขาย" required>
+                <button type="submit" class="btn btn-danger w-100">ขายสินค้า</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+15:20 Netitorn Montriwat Report V4.
+15:20 Netitorn Montriwat <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>รายงานคงคลัง</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light py-5">
+<div class="container">
+    <h2 class="text-center mb-4">📊 รายงานคงคลังตามหมวดหมู่</h2>
+    <a href="/" class="btn btn-secondary mb-4">⬅ กลับ</a>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>หมวดหมู่</th>
+                <th>จำนวนคงเหลือ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in summary %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
